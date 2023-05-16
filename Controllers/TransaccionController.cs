@@ -1,4 +1,5 @@
-﻿using API_Polizas.Models;
+﻿using Amazon.Auth.AccessControlPolicy;
+using API_Polizas.Models;
 using API_Polizas.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,61 +18,188 @@ namespace API_Polizas.Controllers
             _transaccionService = transaccionService;
         }
 
-        [HttpGet]
-        public ActionResult<List<Automotor>> Get()
+        /// <summary>
+        /// Obtiene las pólizas asociadas a un automóvil según su número de placa.
+        /// </summary>
+        /// <param name="placa">Número de placa del automóvil.</param>
+        /// <returns>Lista de pólizas asociadas al automóvil.</returns>
+        /// <response code="200">Se obtuvieron las pólizas exitosamente.</response>
+        /// <response code="404">No se encontró el automóvil con la placa especificada.</response>
+        [HttpGet("placa/{placa}")]
+        public ActionResult<List<Poliza>> GetPolizasByPlaca(string placa)
         {
-            return Ok(_transaccionService.GetAll());
-        }
-
-        [HttpGet("{id:length(24)}", Name = "GetAutomotor")]
-        public ActionResult<AutomotorDto> GetAutomotorDto(string id)
-        {
-            var automotor = _transaccionService.GetAutomotorDto(id);
-
-            if (automotor == null)
+            try
             {
-                return NotFound();
-            }
+                var polizas = _transaccionService.GetPolizasByPlaca(placa.ToUpper());
 
-            return automotor;
+                if (polizas == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    StatusCodeMessage = "OK",
+                    Result = polizas
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    StatusCodeMessage = "Not Found",
+                    Result = ex.Message
+                });
+            }
         }
 
+        /// <summary>
+        /// Obtiene información de una póliza por su identificador.
+        /// </summary>
+        /// <param name="polizaId">Identificador de la póliza.</param>
+        /// <returns>Objeto ActionResult que contiene la información de la póliza si se encuentra, o un mensaje de error si no se encuentra.</returns>
+        [HttpGet("poliza/{ID_Poliza}")]
+        public ActionResult<Poliza> GetPolizaById(string polizaId)
+        {
+            try
+            {
+                var poliza = _transaccionService.GetPolizaById(polizaId);
+
+                if (poliza == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    StatusCodeMessage = "OK",
+                    Result = poliza
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    StatusCodeMessage = "Not Found",
+                    Result = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene los datos de un automóvil en formato DTO a partir de su identificador.
+        /// </summary>
+        /// <param name="id">El identificador del automóvil.</param>
+        /// <returns>Los datos del automóvil en formato DTO.</returns>
+        /// <response code="200">Se obtuvieron los datos del automóvil exitosamente.</response>
+        /// <response code="404">No se encontró el automóvil con el identificador especificado.</response>
+        [HttpGet(Name = "GetAllAutomotores")]
+        public ActionResult<List<AutomotorDto>> GetAllAutomotores()
+        {
+            try
+            {
+                var automotores = _transaccionService.GetAllAutomotores();
+                if (automotores == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    StatusCodeMessage = "OK",
+                    Result = automotores
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    StatusCodeMessage = "Not Found",
+                    Result = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Crea un nuevo automóvil con las pólizas especificadas.
+        /// </summary>
+        /// <param name="automotor">El objeto Automotor que contiene los datos del automóvil a crear.</param>
+        /// <returns>El objeto Automotor creado.</returns>
+        /// <response code="200">Se ha creado el automóvil exitosamente.</response>
+        /// <response code="400">No se pudo crear el automóvil debido a un error en los datos proporcionados.</response>
         [HttpPost]
-        public ActionResult<Automotor> Create(Automotor automotor)
+        public ActionResult<AutomotorDto> Create(Automotor automotor)
         {
-            _transaccionService.Create(automotor);
+            try
+            {
+                var createdAutomotor = _transaccionService.Create(automotor);
 
-            return CreatedAtRoute("GetAutomotor", new { id = automotor.Id.ToString() }, automotor);
+                if (createdAutomotor == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    StatusCodeMessage = "OK",
+                    Result = createdAutomotor
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    StatusCodeMessage = "Not Found",
+                    Result = ex.Message
+                });
+            }
         }
 
-        [HttpPut("{id:length(24)}")]
-        public IActionResult Update(string id, Automotor automotorIn)
+
+        /// <summary>
+        /// Agrega pólizas a un automóvil existente.
+        /// </summary>
+        /// <param name="automotorId">El ID del automóvil.</param>
+        /// <param name="newPolicies">La lista de nuevas pólizas a agregar.</param>
+        /// <returns>El automóvil actualizado con las pólizas agregadas.</returns>
+        /// <response code="200">Se agregaron las pólizas correctamente.</response>
+        /// <response code="400">La solicitud es incorrecta debido a un error en los parámetros.</response>
+        [HttpPost("{automotorId}/polizas")]
+        public ActionResult<AutomotorDto> AddPolicies(string automotorId, List<Poliza> newPolicies)
         {
-            var automotor = _transaccionService.Get(id);
-
-            if (automotor == null)
+            try
             {
-                return NotFound();
+                var updatedAutomotor = _transaccionService.AddPolicies(automotorId, newPolicies);
+
+                if (updatedAutomotor == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    StatusCodeMessage = "OK",
+                    Result = updatedAutomotor
+                });
             }
-
-            _transaccionService.Update(id, automotorIn);
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id:length(24)}")]
-        public IActionResult Delete(string id)
-        {
-            var automotor = _transaccionService.Get(id);
-
-            if (automotor == null)
+            catch (ArgumentException ex)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    StatusCodeMessage = "Not Found",
+                    Result = ex.Message
+                });
             }
-
-            _transaccionService.Remove(automotor.Id);
-
-            return NoContent();
         }
     }
 }

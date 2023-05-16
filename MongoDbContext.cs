@@ -13,7 +13,6 @@ namespace API_Polizas
         public MongoDbContext(IDBSettings dBSettings)
         {
             var connectionString = $"mongodb+srv://{dBSettings.Username}:{dBSettings.Password}@{dBSettings.Server}/?retryWrites=true&w=majority";   
-            Console.WriteLine(connectionString);
             MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
             settings.SslSettings = new SslSettings() { EnabledSslProtocols = SslProtocols.Tls12 };
             var client = new MongoClient(settings);
