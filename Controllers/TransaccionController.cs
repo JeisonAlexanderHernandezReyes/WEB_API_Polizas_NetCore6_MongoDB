@@ -60,7 +60,7 @@ namespace API_Polizas.Controllers
         /// </summary>
         /// <param name="polizaId">Identificador de la póliza.</param>
         /// <returns>Objeto ActionResult que contiene la información de la póliza si se encuentra, o un mensaje de error si no se encuentra.</returns>
-        [HttpGet("poliza/{ID_Poliza}")]
+        [HttpGet("poliza/{polizaId}")]
         public ActionResult<Poliza> GetPolizaById(string polizaId)
         {
             try
