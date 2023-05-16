@@ -1,4 +1,5 @@
 ﻿using Amazon.Auth.AccessControlPolicy;
+using API_Polizas.Interface;
 using API_Polizas.Models;
 using API_Polizas.Models.Dto;
 using API_Polizas.Services;
@@ -14,9 +15,9 @@ namespace API_Polizas.Controllers
     [ApiController]
     public class TransaccionController : ControllerBase
     {
-        private readonly TransaccionService _transaccionService;
+        private readonly ITransaccionService _transaccionService;
 
-        public TransaccionController(TransaccionService transaccionService)
+        public TransaccionController(ITransaccionService transaccionService)
         {
             _transaccionService = transaccionService;
         }

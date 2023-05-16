@@ -1,4 +1,5 @@
-﻿using API_Polizas.Models;
+﻿using API_Polizas.Interface;
+using API_Polizas.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Web;
 
 namespace API_Polizas.Services
 {
-    public class TransaccionService
+    public class TransaccionService : ITransaccionService
     {
         private readonly IMongoCollection<Automotor> _automotor;
         private readonly ClienteService _clienteService;
@@ -20,7 +21,6 @@ namespace API_Polizas.Services
             _clienteService = clienteService;
         }
 
-        // Create
         // Create
         public Automotor Create(Automotor automotor)
         {
@@ -132,7 +132,6 @@ namespace API_Polizas.Services
             return automotor.Polizas.FirstOrDefault(p => p.Id.ToString() == polizaId);
         }
 
-        // Get all automotores
         // Get all automotores
         public List<AutomotorDto> GetAllAutomotores()
         {

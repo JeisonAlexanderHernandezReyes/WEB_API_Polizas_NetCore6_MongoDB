@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
+using API_Polizas.Interface;
 
 namespace API_Polizas
 {
@@ -31,7 +31,7 @@ namespace API_Polizas
             // Registro de servicios
             services.AddSingleton<MongoDbContext>();
             services.AddSingleton<ClienteService>();
-            services.AddSingleton<TransaccionService>();
+            services.AddSingleton<ITransaccionService, TransaccionService>();
 
             // Configure CORS
             services.AddCors(options =>
