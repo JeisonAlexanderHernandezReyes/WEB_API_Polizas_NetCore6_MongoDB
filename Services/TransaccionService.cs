@@ -76,7 +76,7 @@ namespace API_Polizas.Services
         public Automotor Get(string id) => _automotor.Find<Automotor>(automotor => automotor.Id == id).FirstOrDefault();
 
         // Add policies
-        public Automotor AddPolicies(string automotorId, List<Poliza> newPolicies)
+        public Automotor AddPolizas(string automotorId, List<Poliza> newPolicies)
         {
             var automotor = _automotor.Find<Automotor>(a => a.Id == automotorId).FirstOrDefault();
 

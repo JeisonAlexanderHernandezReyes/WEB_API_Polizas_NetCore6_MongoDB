@@ -1,5 +1,6 @@
 ﻿using Amazon.Auth.AccessControlPolicy;
 using API_Polizas.Models;
+using API_Polizas.Models.Dto;
 using API_Polizas.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -61,7 +62,7 @@ namespace API_Polizas.Controllers
         /// <param name="polizaId">Identificador de la póliza.</param>
         /// <returns>Objeto ActionResult que contiene la información de la póliza si se encuentra, o un mensaje de error si no se encuentra.</returns>
         [HttpGet("poliza/{polizaId}")]
-        public ActionResult<Poliza> GetPolizaById(string polizaId)
+        public ActionResult<PolizaInfoDto> GetPolizaById(string polizaId)
         {
             try
             {
@@ -72,11 +73,21 @@ namespace API_Polizas.Controllers
                     return NotFound();
                 }
 
+                var polizaDto = new PolizaInfoDto
+                {
+                    Id = poliza.Id.ToString(),
+                    Nombre = poliza.Nombre,
+                    FechaInicio = poliza.FechaInicio.ToString("dd-MM-yyyy"),
+                    FechaFinal = poliza.FechaFinal.ToString("dd-MM-yyyy"),
+                    Cobertura = poliza.Cobertura,
+                    ValorMaxCobertura = poliza.ValorMaxCobertura
+                };
+
                 return Ok(new
                 {
                     StatusCode = StatusCodes.Status200OK,
                     StatusCodeMessage = "OK",
-                    Result = poliza
+                    Result = polizaDto
                 });
             }
             catch (ArgumentException ex)
@@ -173,11 +184,11 @@ namespace API_Polizas.Controllers
         /// <response code="200">Se agregaron las pólizas correctamente.</response>
         /// <response code="400">La solicitud es incorrecta debido a un error en los parámetros.</response>
         [HttpPost("{automotorId}/polizas")]
-        public ActionResult<AutomotorDto> AddPolicies(string automotorId, List<Poliza> newPolicies)
+        public ActionResult<AutomotorDto> AddPolizas(string automotorId, List<Poliza> newPolizas)
         {
             try
             {
-                var updatedAutomotor = _transaccionService.AddPolicies(automotorId, newPolicies);
+                var updatedAutomotor = _transaccionService.AddPolizas(automotorId, newPolizas);
 
                 if (updatedAutomotor == null)
                 {

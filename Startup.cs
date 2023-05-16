@@ -1,7 +1,12 @@
 ﻿using API_Polizas.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 namespace API_Polizas
 {
@@ -32,17 +37,34 @@ namespace API_Polizas
             // Configure CORS
             services.AddCors(options =>
             {
-                // Define a CORS policy
                 options.AddPolicy("MyPolicy",
                     builder =>
                     {
-                        builder.AllowAnyOrigin()
+                        builder.WithOrigins(Configuration["Jwt:Issuer"])
                                .AllowAnyHeader()
-                               .AllowAnyMethod();
+                               .AllowAnyMethod()
+                               .AllowCredentials()
+                               .WithExposedHeaders("Authorization");
                     });
             });
 
+
             ConfigureSwagger(services);
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Jwt:Issuer"],
+                    ValidAudience = Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
+                };
+            });
+
         }
 
         private void ConfigureSwagger(IServiceCollection services)
@@ -69,6 +91,10 @@ namespace API_Polizas
 
             // Apply the CORS policy
             app.UseCors("MyPolicy");
+
+            app.UseAuthentication(); 
+
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
