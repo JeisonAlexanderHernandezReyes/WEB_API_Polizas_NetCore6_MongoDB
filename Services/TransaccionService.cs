@@ -1,4 +1,5 @@
 ﻿using API_Polizas.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace API_Polizas.Services
             var automotor = _automotor.Find<Automotor>(automotor => automotor.Id == id).FirstOrDefault();
 
             // Traer el cliente desde MongoDB
-            var cliente = _clienteService.Get(automotor.ClientId);
+            var cliente = _clienteService.Get(ObjectId.Parse(automotor.ClientId));
 
             var automotorDto = new AutomotorDto
             {
@@ -87,10 +88,16 @@ namespace API_Polizas.Services
 
             foreach (var poliza in newPolicies)
             {
-                if (poliza.FechaFinal < poliza.FechaInicio || poliza.FechaInicio > DateTime.Now || poliza.FechaFinal < DateTime.Now)
+                if (poliza.FechaFinal < poliza.FechaInicio)
                 {
                     throw new ArgumentException("La fecha de inicio de la póliza debe ser anterior a la fecha final y ambas fechas deben estar en el futuro.");
                 }
+                else if (poliza.FechaInicio < DateTime.Now)
+                {
+                    throw new ArgumentException("La fecha de la póliza debe ser mayor a la fecha actual: " + TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Pacific SA Standard Time")).ToString("dd-MM-yyyy"));
+                }
+
+                poliza.Id = ObjectId.GenerateNewId().ToString();
             }
 
             automotor.Polizas.AddRange(newPolicies);
@@ -133,7 +140,7 @@ namespace API_Polizas.Services
 
             var automotoresDto = automotores.Select(automotor =>
             {
-                var cliente = _clienteService.Get(automotor.ClientId);
+                var cliente = _clienteService.Get(ObjectId.Parse(automotor.ClientId));
 
                 return new AutomotorDto
                 {

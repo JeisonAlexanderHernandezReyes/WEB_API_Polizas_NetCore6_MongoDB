@@ -22,6 +22,6 @@ namespace API_Polizas.Models
 
         [BsonElement("clientID")]  
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId ClientId { get; set; }
+        public string ClientId { get; set; }
     }
 }
