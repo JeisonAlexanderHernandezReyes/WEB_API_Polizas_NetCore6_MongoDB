@@ -39,7 +39,7 @@ namespace API_Polizas
                 options.AddPolicy("MyPolicy",
                     builder =>
                     {
-                        builder.WithOrigins(Configuration["Jwt:Issuer"])
+                        builder.SetIsOriginAllowed(_ => true)
                                .AllowAnyHeader()
                                .AllowAnyMethod()
                                .AllowCredentials()
